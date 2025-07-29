@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Segmented Control</title>
+  <style>
+    @font-face {
+      font-family: 'TikTokSansText';
+      src: url('webfonts/TikTokSansText-Regular.woff2') format('woff2'),
+           url('webfonts/TikTokSansText-Regular.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'TikTokSansText';
+      src: url('webfonts/TikTokSansText-Medium.woff2') format('woff2'),
+           url('webfonts/TikTokSansText-Medium.woff') format('woff');
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 240px;
+      background-color: #fff;
+      z-index: 1000;
+    }
+
+    .nav img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .toolbar {
+      position: fixed;
+      top: 16px;
+      right: 20px;
+      width: 325px;
+      height: 44px;
+      box-shadow: 0px 2px 10px 0px rgba(0, 0, 0, 0.07);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    html, body {
+      font-family: 'TikTokSansText', system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: none;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .container-wrapper {
+      height: 100vh;
+      overflow-y: auto;
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container-wrapper::-webkit-scrollbar {
+      display: none;
+    }
+
+    .container {
+      position: relative;
+      height: calc(100vh - 32px);
+      width: calc((100vh - 32px) * 9 / 16);
+      background-color: rgb(255, 255, 255);
+      border-radius: 24px;
+      overflow: hidden;
+      margin: 16px auto;
+      scroll-snap-align: center;
+      flex-shrink: 0;
+    }
+
+    .container:not(.special-container)::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 136px;
+      background-image: url('Top Section.png');
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      z-index: 0;
+    }
+
+    .special-container {
+      width: 64vw;
+      height: calc(64vw * 9 / 16);
+    }
+
+    .container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    /* 分段控制组件样式 */
+    .switch {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      width: 44px;
+      height: 24px;
+      background-color: rgba(22, 24, 35, 0.06);
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+      border-radius: 999px;
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(22, 24, 35, 0.1);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+    }
+
+    .switch:hover {
+      background-color: rgba(22, 24, 35, 0.1);
+      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .switch-thumb {
+      width: 20px;
+      height: 20px;
+      background-color: white;
+      border-radius: 50%;
+      box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s;
+      margin: 0;
+    }
+
+    .switch.active {
+      background-color: rgb(22, 24, 35);
+      border-color: rgb(22, 24, 35);
+    }
+
+    .switch.active .switch-thumb {
+      transform: translateX(20px);
+      background-color: #fff;
+    }
+
+    .switch.active:hover {
+      background-color: rgb(37, 40, 55);
+    }
+
+    
+
+    .segmented-control {
+      display: flex;
+      background-color: rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(60px);
+      border-radius: 999px;
+      padding: 0 8px;
+      width: fit-content;
+      height: fit-content;
+      position: fixed;
+      top: 31px;
+      left: 50%;
+      transform-origin: 50% 50%;
+      transform: translate(-50%, 0);
+      overflow: hidden;
+      transition: transform 500ms cubic-bezier(0.25, 0, 0.25, 1),
+                  width 500ms cubic-bezier(0.25, 0, 0.25, 1),
+                  height 500ms cubic-bezier(0.25, 0, 0.25, 1),
+                  padding 500ms cubic-bezier(0.25, 0, 0.25, 1);
+    }
+
+    .segmented-control.shrink {
+      transform: translate(-50%, 7px);
+    }
+
+    .segmented-control.shrink {
+      width: 64px;
+      height: 20px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .segmented-control.shrink:hover {
+      width: fit-content;
+      height: fit-content;
+      padding: 0 8px;
+    }
+
+    .segmented-control.shrink:hover .segmented-control-option {
+      visibility: visible;
+      opacity: 1;
+      transition: opacity 300ms cubic-bezier(0.25, 0, 0.25, 1), visibility 0ms;
+    }
+
+    .segmented-control.shrink:hover .segmented-control-icon {
+      opacity: 0;
+    }
+
+    .segmented-control.shrink .segmented-control-option {
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 300ms cubic-bezier(0.25, 0, 0.25, 1), visibility 0ms linear 300ms;
+    }
+
+    .segmented-control-icon {
+      width: 12px;
+      height: 12px;
+      opacity: 0;
+      pointer-events: none;
+      display: none;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      object-fit: contain;
+    }
+
+    .segmented-control.shrink .segmented-control-icon {
+      opacity: 0;
+      transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+      display: block;
+    }
+    
+    .segmented-control-option {
+      position: relative;
+      border: none;
+      background: none;
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 14px;
+      line-height: 130%;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.6);
+      opacity: 1;
+      cursor: pointer;
+      outline: none;
+      z-index: 2;
+      transition: color 300ms cubic-bezier(0.4, 0, 0.2, 1),
+                  opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+      font-family: 'TikTokSansText', system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      white-space: nowrap;
+      width: 80px;
+      text-align: center;
+      font-synthesis: none;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .segmented-control-option:hover {
+      color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .segmented-control-option.selected {
+      color: rgb(255, 255, 255);
+      font-weight: 500;
+      background: none;
+      box-shadow: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <img src="Toolbar.png" alt="Toolbar" width="325" height="44">
+  </div>
+  <div class="nav">
+    <img src="Navigation Drawer.png" alt="TikTok Navigation" width="240">
+  </div>
+    <div class="container-wrapper">
+      <div class="container">
+        <img src="https://i.redd.it/mount-rainier-national-park-9-16-2024-v0-hki5ajec0apd1.jpg?width=2860&format=pjpg&auto=webp&s=139a2d515ba7a47f222392c63bb077e6f7831af1" alt="Mount Rainier National Park">
+      </div>
+      <div class="container">
+        <img src="https://i.redd.it/mount-rainier-national-park-9-16-2024-v0-504f5xfc0apd1.jpg?width=3667&format=pjpg&auto=webp&s=64636def81cd32249e45ce45b7f1e007ba84b032" alt="Mount Rainier National Park">
+      </div>
+      <div class="container special-container">
+        <img src="https://lh6.googleusercontent.com/proxy/dnj0HqVR339beraTeChZivkKutXkZ_IHGZw-JvrwB-ezNkWs31NdCaTXEdJ0z3djNIaI0YIkvMRLSDn_GxrFD4iq6bD7cAQxjXDadzRpYRl-8A5e" alt="Mountain Landscape">
+      </div>
+      <div class="container">
+        <img src="https://i0.wp.com/thattravelista.com/wp-content/uploads/2020/05/New-Zealand-Mount-Cook-Lake-Pukaki-9-1.jpg?fit=682%2C1024&ssl=1" alt="Mount Cook Lake Pukaki">
+      </div>
+    </div>
+    <div class="segmented-control" id="segmentedControl">
+      <button class="segmented-control-option selected" data-id="for-you">For You</button>
+      <button class="segmented-control-option" data-id="following">Following</button>
+      <button class="segmented-control-option" data-id="friends">Friends</button>
+      <img class="segmented-control-icon" src="Chevron_Down.png" alt="Chevron Down" />
+    </div>
+
+  <div class="switch" id="positionSwitch">
+    <div class="switch-thumb"></div>
+  </div>
+
+  <script>
+    const segmentedControl = document.getElementById('segmentedControl');
+    let shrinkTimeout;
+
+    function startShrinkTimer() {
+      clearTimeout(shrinkTimeout);
+      shrinkTimeout = setTimeout(() => {
+        segmentedControl.classList.add('shrink');
+        const icon = segmentedControl.querySelector('.segmented-control-icon');
+        setTimeout(() => {
+          icon.style.display = 'block';
+          requestAnimationFrame(() => {
+            icon.style.opacity = '0.75';
+          });
+        }, 300);
+      }, 5000);
+    }
+
+    segmentedControl.addEventListener('mouseenter', () => {
+      const icon = segmentedControl.querySelector('.segmented-control-icon');
+      icon.style.opacity = '0';
+      icon.style.display = 'none';
+      segmentedControl.classList.remove('shrink');
+      clearTimeout(shrinkTimeout);
+    });
+
+    segmentedControl.addEventListener('mouseleave', () => {
+      startShrinkTimer();
+    });
+
+    // 初始化时启动计时器
+    startShrinkTimer();
+    const options = segmentedControl.querySelectorAll('.segmented-control-option');
+    const positionSwitch = document.getElementById('positionSwitch');
+    const containerWrapper = document.querySelector('.container-wrapper');
+    let lastScrollY = containerWrapper.scrollTop;
+    let selectedTab = 'for-you';
+
+    // 切换分段控制器位置
+    positionSwitch.addEventListener('click', () => {
+      positionSwitch.classList.toggle('active');
+    });
+    
+    // 点击选项事件
+    options.forEach(option => {
+      option.addEventListener('click', () => {
+        // 移除之前的选中状态
+        segmentedControl.querySelector('.selected').classList.remove('selected');
+        // 添加新的选中状态
+        option.classList.add('selected');
+        selectedTab = option.getAttribute('data-id');
+      });
+    });
+
+    // 获取所有容器
+    const containers = document.querySelectorAll('.container');
+
+    // 检查元素是否在视口中
+    function isElementInViewport(el) {
+      const rect = el.getBoundingClientRect();
+      const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+      const threshold = windowHeight * 0.5; // 50% 阈值
+      
+      return rect.top >= -threshold && rect.top <= threshold;
+    }
+
+    // 滚动事件监听
+    containerWrapper.addEventListener('scroll', () => {
+      const currentScrollY = containerWrapper.scrollTop;
+      // 滚动时不再改变位置
+      lastScrollY = currentScrollY;
+
+      // 检查第三个容器是否在视口中
+      const thirdContainer = containers[2];
+      const isThirdVisible = isElementInViewport(thirdContainer);
+      
+      // 根据第三个容器的可见性控制第二和第四个容器的显示
+      containers[1].style.opacity = isThirdVisible ? '0' : '1';
+      containers[3].style.opacity = isThirdVisible ? '0' : '1';
+      
+      // 添加过渡效果
+      containers[1].style.transition = 'opacity 500ms cubic-bezier(0.25, 0, 0.25, 1)';
+      containers[3].style.transition = 'opacity 500ms cubic-bezier(0.25, 0, 0.25, 1)';
+    });
+
+    // 初始化：确保在 Following 和 Friends 标签页下显示 control
+    if (selectedTab !== 'for-you') {
+      segmentedControl.style.top = '31px';
+    }
+    
+    
+  </script>
+</body>
+</html>
