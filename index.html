@@ -365,50 +365,14 @@
       startShrinkTimer();
     }, 200);
 
-    // 处理滚动事件
-    let lastScrollY = 0;
-    let scrollingDown = false;
-    let isScrolling = false;
-    
-    function updateSegmentedControlPosition() {
-      if (segmentedControl.classList.contains('shrink')) {
-        segmentedControl.style.top = '38px';
-        segmentedControl.style.opacity = '1';
-        return;
-      }
-      
-      if (scrollingDown) {
-        segmentedControl.style.top = '-36px';
-        segmentedControl.style.opacity = '0';
-      } else {
-        segmentedControl.style.top = '31px';
-        segmentedControl.style.opacity = '1';
-      }
-    }
-    
-    containerWrapper.addEventListener('scroll', () => {
-      const currentScrollY = containerWrapper.scrollTop;
-      scrollingDown = currentScrollY > lastScrollY;
-      lastScrollY = currentScrollY;
-      isScrolling = true;
-      
-      updateSegmentedControlPosition();
-    });
-
-    // 重置滚动状态
-    containerWrapper.addEventListener('scrollend', () => {
-      isScrolling = false;
-      if (!scrollingDown) {
-        updateSegmentedControlPosition();
-      }
-    });
-
     // 监听 shrink 状态变化
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-          if (!isScrolling) {
-            updateSegmentedControlPosition();
+          if (segmentedControl.classList.contains('shrink')) {
+            segmentedControl.style.top = '38px';
+          } else {
+            segmentedControl.style.top = '31px';
           }
         }
       });
