@@ -173,23 +173,22 @@
       -webkit-backdrop-filter: blur(60px);
       border-radius: 999px;
       padding: 0 8px;
-      width: fit-content;
-      height: fit-content;
+      width: 240px;
+      height: 36px;
       position: fixed;
-      top: 31px;
+      top: -36px;
       left: 50%;
-      transform-origin: 50% 50%;
       transform: translate(-50%, 0);
       overflow: hidden;
-      transition: transform 500ms cubic-bezier(0.25, 0, 0.25, 1),
-                  width 500ms cubic-bezier(0.25, 0, 0.25, 1),
-                  height 500ms cubic-bezier(0.25, 0, 0.25, 1),
-                  padding 500ms cubic-bezier(0.25, 0, 0.25, 1);
+      opacity: 0;
+      transition: width 500ms cubic-bezier(0.4, 0, 0.2, 1),
+                  height 500ms cubic-bezier(0.4, 0, 0.2, 1),
+                  padding 500ms cubic-bezier(0.4, 0, 0.2, 1),
+                  opacity 500ms cubic-bezier(0.4, 0, 0.2, 1),
+                  top 600ms cubic-bezier(0.25, 0, 0.25, 1);
     }
 
-    .segmented-control.shrink {
-      transform: translate(-50%, 7px);
-    }
+    
 
     .segmented-control.shrink {
       width: 64px;
@@ -199,18 +198,28 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      top: 38px;
+      transition: width 500ms cubic-bezier(0.4, 0, 0.2, 1),
+                  height 500ms cubic-bezier(0.4, 0, 0.2, 1),
+                  padding 500ms cubic-bezier(0.4, 0, 0.2, 1),
+                  top 500ms cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .segmented-control.shrink:hover {
-      width: fit-content;
-      height: fit-content;
+      width: 240px;
+      height: 36px;
       padding: 0 8px;
+      transition: width 500ms cubic-bezier(0.4, 0, 0.2, 1),
+                  height 500ms cubic-bezier(0.4, 0, 0.2, 1),
+                  padding 500ms cubic-bezier(0.4, 0, 0.2, 1),
+                  top 500ms cubic-bezier(0.4, 0, 0.2, 1);
+      top: 38px;
     }
 
     .segmented-control.shrink:hover .segmented-control-option {
       visibility: visible;
       opacity: 1;
-      transition: opacity 300ms cubic-bezier(0.25, 0, 0.25, 1), visibility 0ms;
+      transition: opacity 500ms cubic-bezier(0.4, 0, 0.2, 1), visibility 0ms linear 800ms;
     }
 
     .segmented-control.shrink:hover .segmented-control-icon {
@@ -220,12 +229,12 @@
     .segmented-control.shrink .segmented-control-option {
       visibility: hidden;
       opacity: 0;
-      transition: opacity 300ms cubic-bezier(0.25, 0, 0.25, 1), visibility 0ms linear 300ms;
+      transition: opacity 500ms cubic-bezier(0.4, 0, 0.2, 1), visibility 0ms linear 100ms;
     }
 
     .segmented-control-icon {
-      width: 12px;
-      height: 12px;
+      width: 16px;
+      height: 16px;
       opacity: 0;
       pointer-events: none;
       display: none;
@@ -239,6 +248,7 @@
     .segmented-control.shrink .segmented-control-icon {
       opacity: 0;
       transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+      opacity: 0.75;
       display: block;
     }
     
@@ -246,10 +256,10 @@
       position: relative;
       border: none;
       background: none;
-      padding: 8px 10px;
+      padding: 0;
       border-radius: 999px;
       font-size: 14px;
-      line-height: 130%;
+      line-height: 36px;
       font-weight: 400;
       color: rgba(255, 255, 255, 0.6);
       opacity: 1;
@@ -264,11 +274,15 @@
       text-align: center;
       font-synthesis: none;
       -webkit-font-smoothing: antialiased;
+      height: 36px;
+      flex: 1;
     }
 
     .segmented-control-option:hover {
       color: rgba(255, 255, 255, 0.8);
     }
+
+    
     
     .segmented-control-option.selected {
       color: rgb(255, 255, 255);
@@ -312,6 +326,7 @@
 
   <script>
     const segmentedControl = document.getElementById('segmentedControl');
+    const containerWrapper = document.querySelector('.container-wrapper');
     let shrinkTimeout;
 
     function startShrinkTimer() {
@@ -319,8 +334,9 @@
       shrinkTimeout = setTimeout(() => {
         segmentedControl.classList.add('shrink');
         const icon = segmentedControl.querySelector('.segmented-control-icon');
+        icon.style.display = 'block';
+        icon.style.opacity = '0';
         setTimeout(() => {
-          icon.style.display = 'block';
           requestAnimationFrame(() => {
             icon.style.opacity = '0.75';
           });
@@ -333,6 +349,7 @@
       icon.style.opacity = '0';
       icon.style.display = 'none';
       segmentedControl.classList.remove('shrink');
+      segmentedControl.style.top = '31px';
       clearTimeout(shrinkTimeout);
     });
 
@@ -340,12 +357,66 @@
       startShrinkTimer();
     });
 
-    // 初始化时启动计时器
-    startShrinkTimer();
+    // 初始化动画
+    setTimeout(() => {
+      segmentedControl.style.opacity = '1';
+      segmentedControl.style.top = '31px';
+      // 初始化时启动计时器
+      startShrinkTimer();
+    }, 200);
+
+    // 处理滚动事件
+    let lastScrollY = 0;
+    let scrollingDown = false;
+    let isScrolling = false;
+    
+    function updateSegmentedControlPosition() {
+      if (segmentedControl.classList.contains('shrink')) {
+        segmentedControl.style.top = '38px';
+        segmentedControl.style.opacity = '1';
+        return;
+      }
+      
+      if (scrollingDown) {
+        segmentedControl.style.top = '-36px';
+        segmentedControl.style.opacity = '0';
+      } else {
+        segmentedControl.style.top = '31px';
+        segmentedControl.style.opacity = '1';
+      }
+    }
+    
+    containerWrapper.addEventListener('scroll', () => {
+      const currentScrollY = containerWrapper.scrollTop;
+      scrollingDown = currentScrollY > lastScrollY;
+      lastScrollY = currentScrollY;
+      isScrolling = true;
+      
+      updateSegmentedControlPosition();
+    });
+
+    // 重置滚动状态
+    containerWrapper.addEventListener('scrollend', () => {
+      isScrolling = false;
+      if (!scrollingDown) {
+        updateSegmentedControlPosition();
+      }
+    });
+
+    // 监听 shrink 状态变化
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          if (!isScrolling) {
+            updateSegmentedControlPosition();
+          }
+        }
+      });
+    });
+
+    observer.observe(segmentedControl, { attributes: true });
     const options = segmentedControl.querySelectorAll('.segmented-control-option');
     const positionSwitch = document.getElementById('positionSwitch');
-    const containerWrapper = document.querySelector('.container-wrapper');
-    let lastScrollY = containerWrapper.scrollTop;
     let selectedTab = 'for-you';
 
     // 切换分段控制器位置
@@ -378,9 +449,6 @@
 
     // 滚动事件监听
     containerWrapper.addEventListener('scroll', () => {
-      const currentScrollY = containerWrapper.scrollTop;
-      // 滚动时不再改变位置
-      lastScrollY = currentScrollY;
 
       // 检查第三个容器是否在视口中
       const thirdContainer = containers[2];
